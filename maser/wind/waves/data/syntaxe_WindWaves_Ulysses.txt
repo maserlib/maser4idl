@@ -1,0 +1,54 @@
+Syntaxe:
+result = read_ulysses_urap_192s(file[,header][,/verbose][,/si_units][,/ndata][,/nsweep][,irecord_offset=irecord_offset][,isweep_offset=isweep_offset])
+result = read_wind_waves_60s(file [,header][,/verbose][,/si_units][,/ndata][,/nsweep][,irecord_offset=irecord_offset][,isweep_offset=isweep_offset])
+
+
+result [output] : 
+   structure (data_wind_waves_60s ou data_ulysses_urap_192s) contenant les données* extraites du fichier de données. 
+file [input] :
+   chemin du fichier
+header [output] :
+   structure (header_wind_waves_60s ou header_ulysses_urap_192s) contenant les headers de chaque balayage du fichier de données.
+/verbose [keyword] :
+   affiche des infos sur le déroulement du programme
+/si_units [keyword] :
+   la sortie de l'intensité (densité spectrale de flux ou de puissance) est convertie en unités SI
+/ndata [keyword] :
+   si /ndata : result est le nombre d'enregistrements* contenus dans le fichier.
+/nsweep [keyword] :
+   si /nsweep : result est le nombre de balayages** contenus dans le fichier. 
+   NB: si /data est présent, /nsweep est ignoré.
+irecord_offset [keyword] : 
+   Offset à ajouter au tag irecord de la structure de sortie result
+isweep_offset [keyword] : 
+   Offset à ajouter au tag isweep de la structure de sortie result
+
+
+* 1 enregistrement = 1 temps, 1 frequence : Modèle de données atomique.
+** 1 balayage : série d'enregistrements successifs à fréquence généralement croissante (== enregistrement dans le fichier de données)
+
+
+structure data_wind_waves_60s:
+  data.receiver_code : code ID of the receiver (0: TNR, 1:RAD1, 2:RAD2).
+  data.seconds : Seconds of day.
+  data.irecord : Number ID of the record in the file.
+  data.isweep : Number ID of the sweep in the file.
+  data.freq : Frequency of observation (kHz).
+  data.intensity : Mean value of the intensity (microV^2/Hz or V^2/Hz depending on /si_units keyword).
+
+
+structure data_ulysses_urap_192s:
+  data.seconds : Seconds of day.
+  data.irecord : Number ID of the record in the file.
+  data.isweep : Number ID of the sweep in the file.
+  data.freq : Frequency of observation (kHz).
+  data.intensity : Mean value of the intensity (SFU or W/m^2/Hz depending on /si_units keyword).
+  data.intensity_max : Max value of the intensity (SFU or W/m^2/Hz depending on /si_units keyword).
+  data.intensity_min : Min value of the intensity (SFU or W/m^2/Hz depending on /si_units keyword).
+
+
+Exemple d'utilisation:
+
+
+IDL> file = '/Volumes/Data/CDPP/DA_TC_ULS_URAP_RAR_192S/ULS_RARS_0192S_20031102.B3E'
+IDL> data = read_ulysses_urap_192s(file)
