@@ -1,0 +1,22 @@
+; IDL batch file to compile the hfc client routines
+;
+; Usage: idl>@compile_all.batch
+;
+; X.Bonnin (LESIA), 19-AUG-2013
+
+.compile read_png
+.compile str_replace
+.compile gt_brstr
+.compile decode_votable
+.compile chain2image
+.compile tag_exist
+.compile mysql2idl_dtype
+.compile mysql_query
+.compile mysql_getdtype
+.compile mysql_parsexml
+.compile mysql_client
+
+.compile hfc_tools
+.compile hfc_query
+.compile hfc_get
+.compile hfc_plot

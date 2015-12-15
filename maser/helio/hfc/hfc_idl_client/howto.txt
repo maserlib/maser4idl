@@ -1,0 +1,30 @@
+ --------------------
+  How to use the
+  HFC client for IDL (v0.1)
+ --------------------
+ X.Bonnin, 19-AUG-2013
+
+ To use the HFC client IDL library, just restore
+ the routines saved in the 'hfc_client.sav'
+ binary file. (This file should be found in the /bin 
+ sub-directory, if it is not read the install.txt file
+ to create it.)
+
+ To do it from the IDL interpreter, just enter the following command line:
+
+    RESTORE,path_to_the_file+'hfc_client.sav',/VERBOSE
+
+  , where path_to_the_file is a string variable containing 
+  the path to the hfc_client.sav file directory (not required
+  if you are already in the /bin sub-directory).
+
+  Examples of how to use routines can be read in the usecases.txt file.
+
+  Notes: - If the 'hfc_client.sav' binary file does not exist
+  	   in the /bin sub-directory, please read the
+ 	   install.txt file first.
+	 - It is also possible to call routines by compiling
+	   all of the source files in the /src directory from 
+	   the IDL interpreter.
+ 
+   

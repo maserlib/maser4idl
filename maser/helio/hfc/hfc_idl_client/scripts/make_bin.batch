@@ -1,0 +1,14 @@
+; IDL batch file to save all of the HFC client routines into an unique XDR format binary file.
+;
+; Usage: idl -e @make_bin.batch
+;
+; X.Bonnin (LESIA), 19-AUG-2013
+
+description='Contains IDL routines to query the Heliophysics Feature Catalogue (HFC)'
+output_filename='../bin/hfc_client.sav'
+
+@compile_all.batch
+SAVE,/ROUTINES,/EMBEDDED,/VERBOSE,/COMPRESS, $
+	description=description, $
+	filename=output_filename
+print,output_filename+' saved'

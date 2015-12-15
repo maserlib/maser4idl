@@ -1,0 +1,79 @@
+
+ This file provides some use cases for the hfc client.
+ To test them, just copy and paste the corresponding command lines
+ in the IDL interpreter.
+
+ X.Bonnin (LESIA), 19-AUG-2013
+----------------------------------------------------------------
+
+1 - Display the help message of a routine (here get_feature):
+
+    	  empty=get_feature(/HELP)
+
+
+2 - Get the list of type of content/feature available in the HFC:
+
+    	  hfc_content=get_content()
+
+
+3 - Get the list of HFC tables that can be queried with the HFC client
+      for each type of features:
+
+      	  hfc_tables=get_tables()
+
+
+4 - Open the HFC query web page in Google Chrome :
+  
+	hfc_url= get_gui(/OPEN,browser='Google\ Chrome')
+
+
+5 - Open the Helio Project web page in Firefox:
+  
+	hfc_url= get_gui(/OPEN,/HELIO)
+
+6 - Get the list and description of the feature recogniton codes 
+    used to populate the HFC:
+
+	frc=get_code()
+
+
+7 - Get sunspots data from SDO/HMI near 01 January 2011 at
+    midnight UT: 
+ 
+	hfc_ss_data = get_feature('sunspots',near_date='2011-01-01T00:00:00', $
+                                  observatory='SDO',instrument='HMI')
+
+8 - Get observation data from SoHO/EIT between 05 April 2008 at
+    22:55:00 UT and 10 April 2008 at 12:00:00 UT: 
+ 
+	hfc_eit_data = get_observation(observatory='SoHO',instrument='EIT', $
+                                       starttime='2001-04-05T22:55:00', $
+                                       endtime='2001-04-10T12:00:00')
+
+9 - Download (in /tmp folder) and plot Nancay radioheliograph image for 
+    01 January 2008 at 08:00:00 UT (first way):
+       
+        hfc_nrh_data=get_observation(observat='Nancay',instrume='Radioheliograph', $
+			             near_date='2008-01-01T08:00:00')
+	show,hfc_nrh_data,qclk_dir='tmp'
+
+
+10 - Download (in /tmp folder) and plot Nancay radioheliograph image for 
+     01 January 2008 at 08:00:00 UT (second way):
+
+	show,observat='Nancay',instrume='Radioheliograph', $
+	     near_date='2008-01-01T08:00:00',qclk_dir='tmp'
+
+
+11 - Download SDO/HMI (magnetogram and continuum) quicklook images 
+     on 14 April 2012 at noon UT into the /tmp folder:
+ 
+         qclk_url=get_quicklook(instrument='HMI',near_date='2012-04-14T12:00:00', $'
+                                target_directory='tmp',/DOWNLOAD_FILE)
+
+
+12 - Download SoHO/EIT data file on 15 February 2002 at 15:00:00 UT
+     into the /tmp folder:
+		
+	  url=get_datafile(instrument='EIT',observat='SoHO',near_date='2002-02-15T15:00:00', $
+		   	   target_directory='tmp',/DOWNLOAD_FILE)
