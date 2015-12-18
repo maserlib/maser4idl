@@ -13,7 +13,7 @@ set currentdir=`pwd`
 set ARGS=($_)
 set scriptpath=`dirname $ARGS[2]`
 cd $scriptpath/..
-setenv MASER_IDL_HOME_DIR=`pwd`
+setenv MASER_IDL_HOME_DIR `pwd`
 
 setenv IDL_PATH +$MASER_IDL_HOME_DIR/maser:"$IDL_PATH"
 cd $currentdir

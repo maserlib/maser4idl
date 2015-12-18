@@ -9,7 +9,7 @@
 # MODIFICATION HISTORY:
 #   Written by X.Bonnin (LESIA, CNRS), 15-DEC-2015
 
-currentdir=`pwd
+currentdir=`pwd`
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $scriptdir/..
 export MASER_IDL_HOME_DIR=`pwd`
