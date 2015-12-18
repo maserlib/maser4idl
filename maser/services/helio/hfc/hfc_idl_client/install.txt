@@ -1,0 +1,34 @@
+ --------------------
+  How to install the
+  HFC client for IDL (v0.1)
+ --------------------
+ X.Bonnin, 19-AUG-2013
+
+ Before using the hfc client, be sure you have the following
+ softwares correctly installed on your operating system:
+ 	   - IDL 7.x or later
+	   - wget 1.12 or later
+           
+ An internet access is also required to query the HFC.
+
+ To install the hfc client: 
+ 
+	1 - If it is not done yet, copy the current directory 
+	      (it should be named "hfc_client" by default)  
+  	      on the machine where you want to run the hfc client.
+
+	2 - Depending on your shell, from the /setup sub-directory
+	execute the following command:
+		for csh/tcsh shell --> source hfc_idl_client_setup.csh
+		for bash/sh shell --> source hfc_idl_client_setup.sh
+
+  	3 - From the /scripts sub-directory, execute the 
+ 	      following command line:
+	      		idl -e @make_bin.batch
+
+	If everything is ok, a binary file called
+	'hfc_client.sav' must be created in the /bin sub-directory.
+	If it is not, please contact the HFC team!
+	
+	To learn how to call the hfc client routines using
+  	the binary file, read the howto.txt file.
