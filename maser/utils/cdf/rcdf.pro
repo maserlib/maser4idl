@@ -34,6 +34,7 @@ PRO rcdf_dtype, input_type, output_type, $
 ;   Written by X.Bonnin (LESIA, CNRS)
 ;
 ;   X.Bonnin, 12-NOV-2015:  Add /ARRAY keyword.
+;   X.Bonnin, 05-JAN-2015:  Fix a bug (used int() instead of fix())
 ;
 ; -
 
@@ -59,7 +60,7 @@ PRO rcdf_dtype, input_type, output_type, $
             'lon64arr','fltarr', 'dblarr', 'strarr','strarr','bytarr', 'fltarr', $
             'dblarr','dblarr','dblarr','dblarr', 'dblarr'] $
     else $
-        idl_datatype = ['byte', 'uint','ulong','int', 'int', 'long', $
+        idl_datatype = ['byte', 'uint','ulong','fix', 'fix', 'long', $
             'long64', 'float', 'double', 'string', 'string', 'byte', 'float', $
             'double', 'double', 'double', 'double', 'double']
 
@@ -202,7 +203,6 @@ if (nzvars gt 0) then begin
             endif else $
                 void = execute('vattrs_i={' + strjoin(vattrs_j[1:vcount-1], ',') + '}')
         endif else vattrs_i = 0b
-
         ; Get number of records
         cdf_control, id, get_var_info=varinf, variable=name_i, /ZVAR
         nrec_i = varinf.maxrec + 1l
