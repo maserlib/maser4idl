@@ -1,0 +1,4 @@
+bin
+!bin/maser-idl.sav
+doc/build
+!doc/build/latex/maser-idl.pdf

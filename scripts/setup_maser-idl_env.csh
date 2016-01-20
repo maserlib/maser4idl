@@ -4,7 +4,7 @@
 #   Set up the MASER-IDL env. variable
 #
 # USAGE:
-#   source setup_maser-idl_env.csh
+#   source setup_maser_env.csh
 #
 # MODIFICATION HISTORY:
 #   Written by X.Bonnin (LESIA, CNRS), 15-DEC-2015

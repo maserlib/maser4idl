@@ -17,9 +17,8 @@
 if [ $# = 1 ]; then
     docdir=$1
 else
-    pushd `dirname $0` > /dev/null
-    scriptpath=`pwd`
-    popd > /dev/null
+    currentdir=`pwd`
+    scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     docdir=$scriptpath/../doc
 fi
 

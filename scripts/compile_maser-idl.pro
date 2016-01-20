@@ -11,6 +11,6 @@
 ; MODIFICATION HISTORY:
 ;   Written by X.Bonnin (LESIA, CNRS), 15-DEC-2015
 
-@../maser/utils/compile_maser-utils
-@../maser/services/helio/compile_maser-helio
-@../maser/data/wind/compile_maser-wind
+@compile_maser-utils
+@compile_maser-helio
+@compile_maser-wind
