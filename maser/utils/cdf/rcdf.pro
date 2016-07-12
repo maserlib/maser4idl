@@ -42,10 +42,11 @@ PRO rcdf_dtype, input_type, output_type, $
         message,/INFO,'Usage:'
         print,'rcdf_dtype, input_type, output_type, $'
         print,'                     cdf_datatype=cdf_datatype, $'
-        print,'                     idl_datatype=idl_datatype, $''
-        print,'                     /ARRAY, /REVERSE
+        print,'                     idl_datatype=idl_datatype, $'
+        print,'                     /ARRAY, /REVERSE'
         return
     endif
+
 
     output_type = -1
     REVERSE=keyword_set(REVERSE)
@@ -76,6 +77,7 @@ END
 ; ========================================
 ;=========================================
 FUNCTION rcdf, cdf_file, gattrs=gattrs, $
+                            ONLY_GATTRS=ONLY_GATTRS, $
                             VERBOSE=VERBOSE
 
 ; +
@@ -95,6 +97,7 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;   None.
 ;
 ; KEYWORD PARAMETERS:
+;   /ONLY_GATTRS - Only load Global attributes
 ;   /VERBOSE - Talkative mode
 ;
 ; OUTPUTS:
@@ -121,6 +124,7 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;                                                 - Treat string type in cdf_varget
 ;   X.Bonnin, 16-NOV-2015:  - Fix a bug that produces an error if a CDF variable has no var. attribute.
 ;                                                 - Byte data type is not correctly taken account when reading var. attribute.
+;   X.Bonnin, 06-APR-2016: Add /ONLY_GATTRS
 ;
 ; -
 
@@ -129,9 +133,10 @@ quote = string(39b)
 data = 0b & gattrs = 0b
 if (n_params() lt 1) then begin
     message,/INFO,'Usage:'
-    print,'data = rcdf(cdf_file, gattrs=gattrs, /VERBOSE)'
+    print,'data = rcdf(cdf_file, gattrs=gattrs, /ONLY_GATTRS, /VERBOSE)'
     return,0b
 endif
+ONLY_GATTRS = keyword_set(ONLY_GATTRS)
 VERBOSE = keyword_set(VERBOSE)
 
 if (VERBOSE) then print,'Opening ' + cdf_file + '... '
@@ -164,6 +169,8 @@ if (numattrs[0]) ne 0 then begin
     str = 'gattrs = {' + strjoin(gattr_list,',') + '}'
     void = execute(str)
 endif
+
+if ONLY_GATTRS then return, 0b
 
 ; Get CDF Zvariables
 if (nzvars gt 0) then begin
