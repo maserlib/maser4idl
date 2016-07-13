@@ -1,6 +1,10 @@
 MASER-IDL CHANGELOG
 ===================
 
+0.1.2
+-----
+* Add INSTALL.rst file
+* Add admin_maser4idl.sh and get_maser4idl.sh scripts
 
 0.1.1
 -----
