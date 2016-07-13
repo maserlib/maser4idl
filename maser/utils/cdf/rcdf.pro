@@ -42,10 +42,11 @@ PRO rcdf_dtype, input_type, output_type, $
         message,/INFO,'Usage:'
         print,'rcdf_dtype, input_type, output_type, $'
         print,'                     cdf_datatype=cdf_datatype, $'
-        print,'                     idl_datatype=idl_datatype, $''
-        print,'                     /ARRAY, /REVERSE
+        print,'                     idl_datatype=idl_datatype, $'
+        print,'                     /ARRAY, /REVERSE'
         return
     endif
+
 
     output_type = -1
     REVERSE=keyword_set(REVERSE)
@@ -76,6 +77,7 @@ END
 ; ========================================
 ;=========================================
 FUNCTION rcdf, cdf_file, gattrs=gattrs, $
+                            ONLY_GATTRS=ONLY_GATTRS, $
                             VERBOSE=VERBOSE
 
 ; +
@@ -95,6 +97,7 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;   None.
 ;
 ; KEYWORD PARAMETERS:
+;   /ONLY_GATTRS - Only load Global attributes
 ;   /VERBOSE - Talkative mode
 ;
 ; OUTPUTS:
@@ -116,22 +119,33 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ; MODIFICATION HISTORY:
 ;   Written by X.Bonnin (LESIA, CNRS)
 ;
-;   X.Bonnin, 20-MAY-2015:  Add gattrs loading.
+;   X.Bonnin, 20-MAY-2015:  - Add gattrs loading.
 ;   X.Bonnin, 12-NOV-2015:  - Treat the case where a variable has no data.
-;                                                 - Treat string type in cdf_varget
-;   X.Bonnin, 16-NOV-2015:  - Fix a bug that produces an error if a CDF variable has no var. attribute.
-;                                                 - Byte data type is not correctly taken account when reading var. attribute.
-;
+;                           - Treat string type in cdf_varget
+;   X.Bonnin, 16-NOV-2015:  - Fix a bug that produces
+;                             an error if a CDF variable has no var. attribute.
+;                           - Byte data type is not correctly
+;                             taken account when reading var. attribute.
+;   X.Bonnin, 06-APR-2016:  - Add /ONLY_GATTRS
+;   X.Bonnin, 13-JUL-2016:  - Fix a bug that raises an error if an attribute
+;                             entry has inside quotes.
+;                           - If a zVariable name starts with a number
+;                             then add an underscore "_" as prefix to
+;                             allow IDL to read it.
 ; -
 
+dquote = string(34b)
 quote = string(39b)
+
+num = strtrim(indgen(10),2)
 
 data = 0b & gattrs = 0b
 if (n_params() lt 1) then begin
     message,/INFO,'Usage:'
-    print,'data = rcdf(cdf_file, gattrs=gattrs, /VERBOSE)'
+    print,'data = rcdf(cdf_file, gattrs=gattrs, /ONLY_GATTRS, /VERBOSE)'
     return,0b
 endif
+ONLY_GATTRS = keyword_set(ONLY_GATTRS)
 VERBOSE = keyword_set(VERBOSE)
 
 if (VERBOSE) then print,'Opening ' + cdf_file + '... '
@@ -142,7 +156,7 @@ nvars=inq.nvars
 nzvars=inq.nzvars
 nvattrs=inq.natts
 
-    ; Get Global  and variable attributes
+; Get Global and variable attributes
 cdf_control, id, get_numattrs=numattrs, /ZVAR
 if (numattrs[0]) ne 0 then begin
     gattr_list = strarr(numattrs[0]) & iatt = 0l
@@ -153,6 +167,8 @@ if (numattrs[0]) ne 0 then begin
             entry_i = strarr(maxzentry+1)
             for j=0,maxzentry do begin
                 CDF_ATTGET, id, name, j, att_j
+                ; replace quotes by double quotes
+                att_j = strjoin(strsplit(att_j, quote, /EXTRACT), dquote)
                 entry_i[j] = att_j
             endfor
             entry_i = '[' + quote + strjoin(entry_i, ',') + quote + ']'
@@ -164,6 +180,8 @@ if (numattrs[0]) ne 0 then begin
     str = 'gattrs = {' + strjoin(gattr_list,',') + '}'
     void = execute(str)
 endif
+
+if ONLY_GATTRS then return, 0b
 
 ; Get CDF Zvariables
 if (nzvars gt 0) then begin
@@ -192,7 +210,10 @@ if (nzvars gt 0) then begin
                     if status ne 1 then continue
                     rcdf_dtype, cdftype, idl_attType
                     if idl_attType eq 'byte' then value = fix(value)
-                    if idl_attType eq 'string' then value = quote + value + quote
+                    if idl_attType eq 'string' then begin
+                        value = strjoin(strsplit(value, quote, /EXTRACT), dquote) ; replace quotes by double quotes
+                        value = quote + value + quote
+                    endif
                     ventry_j = attName + ':' + idl_attType + '(' + strtrim(value,2)+ ')'
                     vattrs_j = [vattrs_j, ventry_j]
                     vcount++
@@ -214,6 +235,15 @@ if (nzvars gt 0) then begin
             cdf_varget,id,name_i, values_i,rec_count=nrec_i, $
                 /ZVARIABLE, /TO_COL, STRING=STRING
 
+            ; If var name start with a number than add "_" prefix
+            hasnum = (where(strmatch(num, strmid(name_i, 0 ,1)) eq 1))[0]
+            if hasnum[0] ne -1 then begin
+                message,/INFO,'Warning: ' + $
+                    name_i + " has been renamed to " + $
+                    '_' + name_i
+                name_i = '_' + name_i
+            endif
+
             ;data_i = idl_dtype + '(' + dim_i + ')'
             void = execute(name_i+ '= {id:'+strtrim(varNum_i,2)+$
             ', datatype:'+quote+datatype_i+quote+$
@@ -226,6 +256,15 @@ if (nzvars gt 0) then begin
             varname[varNum_i] = name_i
         endif else begin
             message,/INFO,name_i+ ' CDF variable has no data!'
+
+            ; If var name start with a number than add "_" prefix
+            hasnum = (where(strmatch(num, strmid(name_i, 0 ,1)) eq 1))[0]
+            if hasnum[0] ne -1 then begin
+                message,/INFO,'Warning: ' + $
+                    name_i + " has been renamed to " + $
+                    '_' + name_i
+                name_i = '_' + name_i
+            endif
 
             void = execute(name_i+ '= {id:'+strtrim(varNum_i,2)+$
             ', datatype:'+quote+datatype_i+quote+$

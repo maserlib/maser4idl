@@ -1,7 +1,0 @@
- ===================
- Maser-idl release notes
- ===================
-
-    Maser-idl V0.1.0b, 16-JAN-2016, X.Bonnin (LESIA, Observatoire de Paris)
-    ==========================================================
-        - First beta release
