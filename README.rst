@@ -1,11 +1,10 @@
 MASER User Library for IDL
 ==========================
 
-
-About MASER IDL User Library
+About
 ----------------------------
 
-The MASER IDL User library (MASER-IDL) contains IDL routines to deal
+The MASER IDL User library (maser4idl) contains IDL routines to deal
 with services and data provided in the framework of
 the MASER portal (Mesures, Analyses et Simulations d’Emissions Radio).
 
@@ -14,20 +13,58 @@ For more information about MASER, please visit: http://maser.lesia.obspm.fr/
 Content
 ------------
 
-MASER-IDL source directory contains the following items:
+The maser4idl directory contains the following items:
 
-    bin/         directory for storing the maser-idl binary files
-    doc/        directory containing the maser-idl documentation
-    maser/   maser-idl source files directory
+::
+
+    bin/       directory for storing the maser-idl binary files
+    doc/       directory containing the maser-idl documentation
+    maser/     maser4idl source files directory
     scripts/   script files to install/compile/test/run maser-idl
 
     README.rst          current file
-    CHANGELOG.rst       maser-idl changes log file
+    CHANGELOG.rst       maser4idl changes log file
 
 
-Installation, configuration and execution
+Installation
 -----------------------------------------
 
-To install, configure, and run maser-idl, please read the maser-idl user guide in doc/build/latex/maser-idl.pdf
+The maser4idl source files can be retrieved using git, by entering:
+
+::
+
+    git clone https://github.com/maserlib/maser4idl
+
+Then from the maser4idl directory, enter:
+
+::
+
+    source scripts/load_maser4idl_env.sh, if you use (ba)sh shell
+
+or
+
+::
+
+    source scripts/load_maser4idl_env.csh, if you use (t)csh shell
+
+This will load the env. variable required to compile and execute the
+IDL programs of library.
+
+From IDL, the full library can be compiled by entering from the scripts/ sub-dir:
+
+::
+
+    IDL>@compile_maser4idl
+
+
+**IMPORTANT**:
+    * Some routines required the CDAWLib(https://spdf.gsfc.nasa.gov/CDAWlib.html) and the NASA CDF software (http://cdf.gsfc.nasa.gov) to work.
+    * To generate the documentation required to install sphinx (http://www.sphinx-doc.org/en/stable/). If you have pip installed, enter *pip install sphinx*.
+
+Usage
+-----
+
+Read the User manual for more information.
+
 
 

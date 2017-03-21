@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Call the build_bin.pro IDL batch file to generate a IDL binary .sav "maser-idl.sav" in the
+# Call the build_bin.pro IDL batch file to generate a IDL binary .sav "maser4idl.sav" in the
 # bin/ sub-directory
 # The maser-idl.sav file contains all of the maser-idl routines compiled.
 
@@ -13,8 +13,25 @@
 #
 # X.Bonnin, 16/01/2016
 
-source setup_maser-idl_env.sh
+
+curdir=`pwd`
+pushd . > /dev/null
+workdir="${BASH_SOURCE[0]:-$0}";
+while([ -h "${workdir}" ]); do
+    cd "`dirname "${workdir}"`"
+    workdir="$(readlink "`basename "${workdir}"`")";
+done
+cd "`dirname "${workdir}"`" > /dev/null
+workdir="`pwd`";
+popd  > /dev/null
+
+currentdir=`pwd`
+cd $workdir
+
+source setup_maser4idl_env.sh
 
 echo `idl -e @build_bin`
+
+cd $currentdir
 
 exit 0
