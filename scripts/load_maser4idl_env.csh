@@ -16,4 +16,5 @@ cd $scriptpath/..
 setenv MASER_IDL_HOME_DIR `pwd`
 
 setenv IDL_PATH +$MASER_IDL_HOME_DIR/maser:"$IDL_PATH"
+setenv IDL_PATH +$MASER_IDL_HOME_DIR/scripts:"$IDL_PATH"
 cd $currentdir

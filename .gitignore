@@ -1,4 +1,4 @@
 *.zip
-bin
+bin/*
 doc/build
 !doc/build/latex/maser-idl.pdf

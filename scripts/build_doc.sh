@@ -17,9 +17,17 @@
 if [ $# = 1 ]; then
     docdir=$1
 else
-    currentdir=`pwd`
-    scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    docdir=$scriptpath/../doc
+    curdir=`pwd`
+    pushd . > /dev/null
+    workdir="${BASH_SOURCE[0]:-$0}";
+    while([ -h "${workdir}" ]); do
+        cd "`dirname "${workdir}"`"
+        workdir="$(readlink "`basename "${workdir}"`")";
+    done
+    cd "`dirname "${workdir}"`" > /dev/null
+    workdir="`pwd`";
+    popd  > /dev/null
+    docdir=$workdir/../doc
 fi
 
 currentdir=`pwd`
