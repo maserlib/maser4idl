@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # Get a local copy of the maser4idl Git repo.
-# X.Bonnin (LESIA, Obs.Paris, CNRS), 13-JUL-2016
+# X.Bonnin (LESIA, Obs.Paris, CNRS), 20-MAR-2017
 
-git clone https://git.obspm.fr/git/projets/Plasma/maser4idl
+git clone https://github.com/maserlib/maser4idl.git

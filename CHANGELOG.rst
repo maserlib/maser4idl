@@ -1,6 +1,11 @@
 MASER-IDL CHANGELOG
 ===================
 
+0.1.3
+-----
+* Update scripts to install library
+* Update doc
+
 0.1.2
 -----
 * Add INSTALL.rst file
