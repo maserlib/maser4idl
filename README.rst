@@ -24,6 +24,8 @@ The maser4idl directory contains the following items:
 
     README.rst          current file
     CHANGELOG.rst       maser4idl changes log file
+    requirements.txt    contains the list of python
+                        modules required to run sphinx
 
 
 Installation

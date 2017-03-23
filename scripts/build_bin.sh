@@ -28,7 +28,7 @@ popd  > /dev/null
 currentdir=`pwd`
 cd $workdir
 
-source setup_maser4idl_env.sh
+source load_maser4idl_env.sh
 
 echo `idl -e @build_bin`
 
