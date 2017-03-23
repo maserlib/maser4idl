@@ -1,6 +1,11 @@
 MASER-IDL CHANGELOG
 ===================
 
+0.1.4
+-----
+* Add requirements.txt
+* fix a bug in scripts/build_bin.sh
+
 0.1.3
 -----
 * Update scripts to install library
