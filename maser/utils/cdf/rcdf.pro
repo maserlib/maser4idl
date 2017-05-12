@@ -164,8 +164,13 @@ if (numattrs[0]) ne 0 then begin
     for i=0,nattrs-1 do begin
         CDF_ATTINQ, id, i, name, scope, maxentry, maxzentry
         if (scope eq 'GLOBAL_SCOPE') then begin
-            entry_i = strarr(maxzentry+1)
-            for j=0,maxzentry do begin
+            nentry = maxentry + 1
+            if nentry le 0 then begin
+                message,/INFO,'Warning: ' + name + ' attribute has no entry!'
+                continue
+            endif
+            entry_i = strarr(maxentry+1)
+            for j=0,maxentry do begin
                 CDF_ATTGET, id, name, j, att_j
                 ; replace quotes by double quotes
                 att_j = strjoin(strsplit(att_j, quote, /EXTRACT), dquote)
