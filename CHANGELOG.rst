@@ -1,6 +1,11 @@
 MASER-IDL CHANGELOG
 ===================
 
+0.1.5
+-----
+* Update global attrs parsing in rcdf.pro (handle empty attrs)
+* Add maser/version.pro
+
 0.1.4
 -----
 * Add requirements.txt
