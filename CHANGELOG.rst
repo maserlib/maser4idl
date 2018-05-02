@@ -1,6 +1,10 @@
 MASER-IDL CHANGELOG
 ===================
 
+0.1.6
+-----
+* Add the function "cdf_getattval" to make_cdf.pro
+
 0.1.5
 -----
 * Update global attrs parsing in rcdf.pro (handle empty attrs)
