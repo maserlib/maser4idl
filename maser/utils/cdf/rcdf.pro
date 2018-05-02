@@ -132,6 +132,8 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;                           - If a zVariable name starts with a number
 ;                             then add an underscore "_" as prefix to
 ;                             allow IDL to read it.
+;   X.Bonnin, 02-MAY-2018:  - Fix a bug in rcdf when a global attribute
+;                             has no entry.
 ; -
 
 dquote = string(34b)
@@ -167,6 +169,9 @@ if (numattrs[0]) ne 0 then begin
             nentry = maxentry + 1
             if nentry le 0 then begin
                 message,/INFO,'Warning: ' + name + ' attribute has no entry!'
+                empty_entry = '[' + quote + quote + ']'
+                gattr_list[iatt] = name + ':' + empty_entry
+                iatt++
                 continue
             endif
             entry_i = strarr(maxentry+1)
