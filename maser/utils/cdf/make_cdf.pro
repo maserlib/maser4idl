@@ -1,3 +1,79 @@
+FUNCTION cdf_getattval, cdf_file, attname_or_number, EntryNum, $
+                                       cdf_type=cdf_type, $
+                                       ZVARIABLE=ZVARIABLE
+
+;+
+; NAME:
+;   cdf_getattval
+;
+; PURPOSE:
+;   Get an attribute value.
+;
+; CATEGORY:
+;   I/O
+;
+; CALLING SEQUENCE:
+;   cdf_getattval,cdf_file,attname_or_number
+;
+; INPUTS:
+;   cdf_file                     - cdf file to read.
+;   attname_or_number - String or integer of the attribute.
+;   EntryNum - The entry number as defined in CDF_ATTGET procedure.
+;
+; OPTIONAL INPUTS:
+;   None.
+;
+; KEYWORD PARAMETERS:
+;   /ZVARIABLE - Specify if the variable for the
+;                         current attribute is a ZVARIABLE type.
+;
+; OUTPUTS:
+;   attval - Value of the attribute.
+;
+; OPTIONAL OUTPUTS:
+;   None.
+;
+; COMMON BLOCKS:
+;   None.
+;
+; SIDE EFFECTS:
+;   None.
+;
+; RESTRICTIONS/COMMENTS:
+;   none.
+;
+; CALL:
+;   None.
+;
+; EXAMPLE:
+;   None.
+;
+; MODIFICATION HISTORY:
+;   Written by X.Bonnin (LESIA, CNRS)
+;
+;-
+
+attval=0b & cdf_type=''
+if (n_params() lt 2) then begin
+    message,/INFO,'Usage:'
+    print,'attval = get_attval(cdf_file, attname_or_number, EntryNum, $'
+    print,'                             cdf_type=cdf_type, /ZVARIABLE)'
+    return,0b
+endif
+if not (keyword_set(EntryNum)) then EntryNum = 0
+ZVARIABLE=keyword_set(ZVARIABLE)
+
+cdfid = cdf_open(cdf_file, /READONLY)
+if (cdf_attexists(cdfid, attname_or_number)) then begin
+    cdf_attget, cdfid, attname_or_number, EntryNum, attval , $
+                        cdf_type=cdf_type, ZVARIABLE=ZVARIABLE
+endif
+cdf_close,cdfid
+
+return, attval
+END
+
+
 PRO cdf_getvar,cdf_file,rvar,zvar
 
 ;+
