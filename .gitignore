@@ -3,3 +3,5 @@ bin/*
 doc/build
 !doc/build/latex/maser-idl.pdf
 .idea/*
+~*
+.DS_Store

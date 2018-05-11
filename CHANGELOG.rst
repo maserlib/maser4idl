@@ -1,9 +1,10 @@
-MASER-IDL CHANGELOG
+MASER4IDL CHANGELOG
 ===================
 
 0.1.6
 -----
 * Add the function "cdf_getattval" to make_cdf.pro
+* Update the env. setup script load_maser4idl_env.csh
 
 0.1.5
 -----
