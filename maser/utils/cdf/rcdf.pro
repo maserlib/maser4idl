@@ -139,7 +139,7 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 dquote = string(34b)
 quote = string(39b)
 
-num = strtrim(indgen(10),2)
+digit = strtrim(indgen(10),2)
 
 data = 0b & gattrs = 0b
 if (n_params() lt 1) then begin
@@ -246,7 +246,7 @@ if (nzvars gt 0) then begin
                 /ZVARIABLE, /TO_COL, STRING=STRING
 
             ; If var name start with a number than add "_" prefix
-            hasnum = (where(strmatch(num, strmid(name_i, 0 ,1)) eq 1))[0]
+            hasnum = (where(strmatch(digit, strmid(name_i, 0 ,1)) eq 1))[0]
             if hasnum[0] ne -1 then begin
                 message,/INFO,'Warning: ' + $
                     name_i + " has been renamed to " + $
@@ -268,7 +268,7 @@ if (nzvars gt 0) then begin
             message,/INFO,name_i+ ' CDF variable has no data!'
 
             ; If var name start with a number than add "_" prefix
-            hasnum = (where(strmatch(num, strmid(name_i, 0 ,1)) eq 1))[0]
+            hasnum = (where(strmatch(digit, strmid(name_i, 0 ,1)) eq 1))[0]
             if hasnum[0] ne -1 then begin
                 message,/INFO,'Warning: ' + $
                     name_i + " has been renamed to " + $
