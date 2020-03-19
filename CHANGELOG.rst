@@ -1,6 +1,10 @@
 MASER4IDL CHANGELOG
 ===================
 
+0.1.7
+-----
+* Fix a bug in rcdf.pro
+
 0.1.6
 -----
 * Add the function "cdf_getattval" to make_cdf.pro

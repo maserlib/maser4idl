@@ -1,4 +1,4 @@
-; maser4idl version information
+; maser4idl version information batch file
 
 defsysv, '!MASER4IDL_VERSION', EXISTS=flag
 if not flag then defsysv, '!MASER4IDL_VERSION', '0.6.1'
@@ -11,5 +11,3 @@ if not flag then defsysv, '!MASER4IDL_CHANGES', ['0.6.1: Update rcdf.py | add ve
 
 defsysv, '!MASER4IDL_AUTHORS', EXISTS=flag
 if not flag then defsysv, '!MASER4IDL_AUTHORS', ['X. Bonnin', 'Q.N Nguyen', 'B. Cecconi']
-
-END
