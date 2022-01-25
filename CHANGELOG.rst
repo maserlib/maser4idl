@@ -1,6 +1,10 @@
 MASER4IDL CHANGELOG
 ===================
 
+0.1.8
+-----
+* Improve the way to retrieve global attributes in rcdf.pro
+
 0.1.7
 -----
 * Fix a bug in rcdf.pro
