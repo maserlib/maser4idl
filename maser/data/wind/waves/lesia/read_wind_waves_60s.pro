@@ -1,11 +1,11 @@
-FUNCTION read_WIND_WAVES_60S,file,header, $
+FUNCTION read_wind_waves_60s,file,header, $
    verbose=verbose,ndata=ndata,nsweep=nsweep,si_units=si_units, $
    irecord_offset=irecord_offset,isweep_offset=isweep_offset, $
-   OLD_DATASET=OLD_DATASET
+   OLD_DATASET=OLD_DATASET, AS_IS=AS_IS, time=time, freq=freq
 
 ;+
 ; NAME:
-;   read_wind_waves_hres
+;   read_wind_waves_60s
 ;
 ; PURPOSE:
 ;   Read a Wind Waves rad1 or rad2 level 60s averaged data
@@ -24,20 +24,21 @@ FUNCTION read_WIND_WAVES_60S,file,header, $
 ;   file - Scalar of string type containing
 ;          the full path to the Wind Waves
 ;          l2 binary file to read.
-; 
+;
 ; OPTIONAL INPUTS:
 ;   irecord_offset - Add an offset value to data indices.
 ;                    Default is 0l.
 ;   isweep_offset  - Add an offset value to sweep indices.
 ;                    Default is 0l.
 ;
-; KEYWORD PARAMETERS: 
+; KEYWORD PARAMETERS:
 ;   /SI_UNITS      - Return the voltage spectral density in V^2/Hz (SI
 ;                    units) instead of microV^2/Hz.
 ;   /NDATA         - Return the number of data only.
 ;   /NSWEEP        - Return the number of sweep only.
 ;   /VERBOSE       - Talkative mode.
 ;   /OLD_DATASET   - Read file from the old 60s dataset.
+;   /AS_IS         - Return data as written in the input binary file
 ;
 ; OUTPUTS:
 ;   data - Structure containing data read in the file.
@@ -46,32 +47,36 @@ FUNCTION read_WIND_WAVES_60S,file,header, $
 ;   receiver_code - Index of the waves receiver (RAD1=1, RAD2=2, TNR=0)
 ;   header        - Structure containing the file's header.
 ;   error         - Returns 1 if an error has occurred during processing, 0 otherwise.
-;   
-; COMMON BLOCKS:    
+;   time          - 1D vector of sample times (in seconds since the beginning of the day)
+;   freq          - 1D vector of frequencies (in kHz)
+;
+; COMMON BLOCKS:
 ;   None.
-; 
+;
 ; SIDE EFFECTS:
 ;   None.
-;   
+;
 ; RESTRICTIONS/COMMENTS:
-;   None. 
-;     
+;   None.
+;
 ; CALL:
 ;   calend_date__define
 ;   ccsds_date__define
-;   data_wind_waves_hres__define
-;   header_wind_waves_hres__define
+;   data_wind_waves_60s__define
+;   header_wind_waves_60s__define
 ;
 ; EXAMPLE:
-;   None.   
+;   None.
 ;
 ; MODIFICATION HISTORY:
 ;   Written by B.Cecconi (LESIA).
-;    
-;   16-APR-2014, X.Bonnin - Data time in input file starts at 00:00:00 UT 
-;                           on 1 January 1982 instead of 1950 
-;                           for new 60s dataset.  
+;
+;   16-APR-2014, X.Bonnin - Data time in input file starts at 00:00:00 UT
+;                           on 1 January 1982 instead of 1950
+;                           for new 60s dataset.
 ;                           Add /OLD_DATASET keyword.
+;
+;   20-NOV-2018, X.Bonnin - Add "/AS_IS" keyword
 ;
 ;-
 
@@ -80,19 +85,20 @@ if not (keyword_set(file)) then begin
     print,'data = read_wind_waves_60s(file, header, $'
     print,'                           irecord_offset=irecord_offset, $'
     print,'                           isweep_offset=isweep_offset, $'
+    print,'                           time=time, freq=freq, $'
     print,'                           /NDATA, /NSWEEP, /SI_UNITS, $'
-    print,'                           /VERBOSE, /OLD_DATASET)'
+    print,'                           /VERBOSE, /OLD_DATASET, /AS_IS)'
     return,0b
 endif
 
-
+AS_IS = keyword_set(AS_IS)
 OLD_DATASET=keyword_set(OLD_DATASET)
 if (OLD_DATASET) then $
     julday0 = julday(01,01,1950,0,0,0) else $
 julday0 = julday(01,01,1982,0,0,0)
 
 if ~keyword_set(verbose) then verbose=0b else verbose=1b
-if keyword_set(si_units) then begin 
+if keyword_set(si_units) then begin
   if verbose then message,/info,'Intensity output in V^2/Hz (SI units)'
   factor=1.e-12
 endif else begin
@@ -166,7 +172,8 @@ warning = 0l
 
 openr,lun,file,/get_lun,/swap_if_little_endian
 
-for i=0l,n_sweep-1l do begin 
+; First get data blocks from binary files
+for i=0l,n_sweep-1l do begin
   readu,lun,rec_lng1
   readu,lun,header_tmp
 
@@ -199,17 +206,17 @@ for i=0l,n_sweep-1l do begin
   header(i).iunit                          = header_tmp.iunit
   header(i).nfreq                          = header_tmp.nfreq
   header(i).spacecraft_coord               = header_tmp.spacecraft_coord
-  
+
   data(i*header(i).nfreq:(i+1l)*header(i).nfreq-1l).receiver_code = header_tmp.receiver_code
   data(i*header(i).nfreq:(i+1l)*header(i).nfreq-1l).seconds = double(header_tmp.ccsds_date.msec_of_day)/1.d3
   data(i*header(i).nfreq:(i+1l)*header(i).nfreq-1l).isweep   = i + irecord_offset
-  
+
   tmp = fltarr(header(i).nfreq)
   readu,lun,tmp
   data(i*header(i).nfreq:(i+1l)*header(i).nfreq-1l).freq = tmp
   readu,lun,tmp
   data(i*header(i).nfreq:(i+1l)*header(i).nfreq-1l).intensity = tmp*factor
-  
+
   if not (OLD_DATASET) then begin
     readu,lun,tmp
     data(i*header(i).nfreq:(i+1l)*header(i).nfreq-1l).intensity_min = tmp*factor
@@ -224,6 +231,33 @@ endfor
 
 close,lun
 free_lun,lun
+
+; Return as 2D array
+if not AS_IS then begin
+  f = data.freq
+  t = data.seconds
+  freq = f[uniq(f, sort(f))]
+  time = t[uniq(t, sort(t))]
+  dt = 60.
+  df = float(freq[1] - freq[0])
+  fmin = min(freq, /NAN)
+  tmin = 0
+  nt = n_elements(time)
+  nf = n_elements(freq)
+  intensity_min = fltarr(nt, nf)
+  intensity_max = fltarr(nt, nf)
+  intensity = fltarr(nt, nf)
+  ; Fill 2D arrays
+  for i=0l,n_elements(data)-1l do begin
+    x = long((t[i] - tmin) / dt)
+    y = (where(f[i] eq freq))[0]
+    intensity_min[x, y] = data(i).intensity_min
+    intensity_max[x,y] =  data(i).intensity_max
+    intensity[x,y] = data(i).intensity
+  endfor
+
+    data = {seconds:time, frequency:freq, intensity_mean:intensity, intensity_max:intensity_max, intensity_min:intensity_min}
+endif
 
 if verbose then message,'Returning data.',/info
 return,data
