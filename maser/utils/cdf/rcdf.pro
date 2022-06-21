@@ -465,12 +465,17 @@ if (numattrs[0]) ne 0 then begin
         CDF_ATTINQ, id, i, name, scope, maxentry, maxzentry
         ; Only keep global attributes
         if (scope eq 'GLOBAL_SCOPE') then begin
-            entry_i = strarr(maxentry+1)
-            for j=0,maxentry do begin
-                CDF_ATTGET, id, name, j, att_j
-                ; Store value as CDF_VARCHAR
-                entry_i[j] = strtrim(att_j,2)
-            endfor
+            if maxentry lt 0 then begin
+                entry_i = strarr(1)
+                entry_i[0] = " "
+            endif else begin
+                entry_i = strarr(maxentry+1)
+                for j=0,maxentry do begin
+                    CDF_ATTGET, id, name, j, att_j
+                    ; Store value as CDF_VARCHAR
+                    entry_i[j] = strtrim(att_j,2)
+                endfor
+            endelse
             gattrs.(iatt) = entry_i
             iatt++
         endif
