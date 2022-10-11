@@ -1,6 +1,19 @@
 MASER4IDL CHANGELOG
 ===================
 
+0.2.1
+-----
+* Hotfix in rcdf.pro (see https://gitlab.obspm.fr/maser/maser4idl/-/issues/3)
+
+0.2.0
+-----
+* Add reader for STEREO/SWAVES L1 high resolution binary data
+* Update reader for Wind/Waves L2 60S binary data
+
+0.1.9
+-----
+* Minor fixes
+
 0.1.8
 -----
 * Improve the way to retrieve global attributes in rcdf.pro
