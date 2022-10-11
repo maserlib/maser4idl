@@ -446,7 +446,7 @@ if (numattrs[0]) ne 0 then begin
             gattr_name[iatt] = name
             if nentry le 0 then begin
                 message,/INFO,'Warning: ' + name + ' attribute has no entry!'
-                gattr_type[iatt] = 'A'
+                gattr_type[iatt] = 'A(1)'
             endif else begin
                 gattr_type[iatt] = 'A('+strtrim(maxentry+1,2)+')'
             endelse
@@ -455,8 +455,9 @@ if (numattrs[0]) ne 0 then begin
     endfor
 
     ; Initialize ouput structure
+    strname = '' ; Use anonymous structure
     tag_descript = strjoin(gattr_type[0:iatt-1], ',')
-    create_structure, gattrs, 'global_attributes', $
+    create_structure, gattrs, strname, $
         gattr_name[0:iatt-1], tag_descript
 
     ; Second loops to fill structure with global attribute entries
@@ -465,12 +466,17 @@ if (numattrs[0]) ne 0 then begin
         CDF_ATTINQ, id, i, name, scope, maxentry, maxzentry
         ; Only keep global attributes
         if (scope eq 'GLOBAL_SCOPE') then begin
-            entry_i = strarr(maxentry+1)
-            for j=0,maxentry do begin
-                CDF_ATTGET, id, name, j, att_j
-                ; Store value as CDF_VARCHAR
-                entry_i[j] = strtrim(att_j,2)
-            endfor
+            if maxentry lt 0 then begin
+                entry_i = strarr(1)
+                entry_i[0] = " "
+            endif else begin
+                entry_i = strarr(maxentry+1)
+                for j=0,maxentry do begin
+                    CDF_ATTGET, id, name, j, att_j
+                    ; Store value as CDF_VARCHAR
+                    entry_i[j] = strtrim(att_j,2)
+                endfor
+            endelse
             gattrs.(iatt) = entry_i
             iatt++
         endif
@@ -483,8 +489,7 @@ END
 ;=========================================
 ;=========================================
 FUNCTION rcdf, cdf_file, gattrs=gattrs, $
-                            ONLY_GATTRS=ONLY_GATTRS, $
-                            VERBOSE=VERBOSE
+            ONLY_GATTRS=ONLY_GATTRS, VERBOSE=VERBOSE
 
 ; +
 ; NAME:
