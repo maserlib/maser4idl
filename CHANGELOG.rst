@@ -1,11 +1,6 @@
 MASER4IDL CHANGELOG
 ===================
 
-0.3.0
-------
-* Add readers for RPW TNR & HFR
-* Re-organise compila_*.pro batch files
-
 0.2.1
 -----
 * Hotfix in rcdf.pro (see https://gitlab.obspm.fr/maser/maser4idl/-/issues/3)
