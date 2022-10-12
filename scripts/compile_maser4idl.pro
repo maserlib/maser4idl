@@ -6,12 +6,12 @@
 ; in your $PATH and the CDAWlib is compiled before running this script.
 ;
 ; USAGE:
-;   idl>@compile_maser-idl
+;   idl>@compile_maser4idl
 ;
 ; MODIFICATION HISTORY:
 ;   Written by X.Bonnin (LESIA, CNRS), 15-DEC-2015
 
 @compile_maser-utils
-@compile_maser-helio
-@compile_maser-wind
+@compile_maser-services
+@compile_maser-data
 @maser_version
