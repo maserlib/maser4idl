@@ -595,7 +595,7 @@ if (nzvars gt 0) then begin
         ; Get variable attributes
         if nvattrs gt 0 then begin
             vattrs_i=0b
-            vattrs_j = '' & vcount=0l
+            vattrs_j = '' & vcount=1l
             for attrNum_j=0, nvattrs-1 do begin
                 CDF_ATTGET_ENTRY, id, attrNum_j, varNum_i, attType, value, $
                     status, /ZVAR, CDF_TYPE=cdftype, ATTRIBUTE_NAME=attName
@@ -610,11 +610,12 @@ if (nzvars gt 0) then begin
                     vattrs_j = [vattrs_j, ventry_j]
                     vcount++
             endfor
-            if vcount eq 0 then begin
+            if vcount eq 1 then begin
                 message,/INFO,name_i+' CDF variable has no variable attribute!'
                 vattrs_i = 0b
-            endif else $
+            endif else begin
                 void = execute('vattrs_i={' + strjoin(vattrs_j[1:vcount-1], ',') + '}')
+            endelse
         endif else vattrs_i = 0b
         ; Get number of records
         cdf_control, id, get_var_info=varinf, variable=name_i, /ZVAR
