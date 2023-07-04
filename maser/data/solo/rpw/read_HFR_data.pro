@@ -8,13 +8,13 @@ pro read_HFR_data,namefile,V,time,freq, $
 ;   read_HFR_data
 ;
 ; PURPOSE:
-;   READ L2 data from HFR
+;   Read SolO/RPW HFR L2 data from input CDF file
 ;
 ; CALLING SEQUENCE:
-;   read_HFR_data,namefile,V,time,freq_hfr
+;   read_HFR_data,namefile,V,time,freq
 ;
 ; INPUTS:
-;   namefile - STRING OF THE FILENAME IN .CDF CONTAINING THE L2 DATA
+;   namefile - STRING OF THE FILENAME IN .CDF CONTAINING THE RPW HFR L2 DATA
 ;
 ; OPTIONAL INPUTS:
 ;   sensor   - Vector containing the HFR sensor(s) to read. 
@@ -92,7 +92,7 @@ n_sensor = n_elements(sensor)
 
 ; If file exists, read it
 if FILE_TEST(namefile) then begin
-    print,'Reading ' + namefile
+    if not QUIET then print,'Reading ' + namefile
     data_L2=rcdf(namefile) 
 endif else message,/ERROR,namefile + ' not found!'
 
@@ -190,11 +190,11 @@ sweeps = sweeps[ord_time]
 ; Make sure to have monotical increasing sweep index values
 ord_sweep = lonarr(counter)
 sweep_count = 1L
-ord_sweep[0] = sweep_count
-for i=1L, counter-1L do begin
+for i=0L, counter-2L do begin
     ord_sweep[i] = sweep_count
-    if sweeps[i] ne sweeps[i - 1] then sweep_count = sweep_count + 1L
+    if sweeps[i + 1L] ne sweeps[i] then sweep_count = sweep_count + 1L
 endfor
+ord_sweep[counter - 1L] = sweep_count
 
 ; if /AS_IS keyword is passed, stop here and return data "as is"
 ; Otherwise continue and return AGC as 2D array (time, freq)
