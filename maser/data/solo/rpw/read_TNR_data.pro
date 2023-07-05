@@ -146,6 +146,18 @@ for i=0L, nrec-2L do begin
 endfor
 tnr_sweep[nrec-1L] = sweep_count
 
+if AS_IS then begin
+    ; If AS_IS, do no convert amplitudes into 2D array
+    V = dblarr(4, 2, nrec)
+    V[0, *, *] = auto1_data
+    V[1, *, *] = auto2_data
+    V[2, *, *] = mag1_data
+    V[3, *, *] = mag2_data
+    tnr_sensor = sensor_config
+    time = timet
+    return
+endif
+
 ; Build outputs
 V = dblarr(sweep_count, nfreq, 2) + fillval_float
 time = dblarr(sweep_count) - fillval_float
