@@ -349,10 +349,10 @@ pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
 
 ; --- Determine if a file already exists with same name as temporary file
 
-if n_elements( tempfile) eq 0 then begin 
+if ~keyword_set(tempfile) then begin 
     tempfile = 'temp_' + strlowcase( strname )
     while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
-endif
+endif else tempfile = tempfile.replace('.pro', '')
 
 ; ---- open temp file and create procedure
 ; ---- If problems writing into the current directory, try the HOME directory
@@ -434,8 +434,8 @@ FUNCTION get_gattrs, id, tempfile = tempfile
 ; -
 
 gattrs = 0b
-if n_elements(temp_file) eq 0 then tempfile = ""
-
+if ~keyword_set(temp_file) then tempfile = ""
+ 
 ; Get attributes from open CDF
 cdf_control, id, get_numattrs=numattrs, /ZVAR
 ; If attributes found, then try to extract global ones
@@ -575,7 +575,7 @@ if (n_params() lt 1) then begin
 endif
 ONLY_GATTRS = keyword_set(ONLY_GATTRS)
 VERBOSE = keyword_set(VERBOSE)
-if n_elements( tempfile) eq 0 then tempfile = ""
+if ~keyword_set( tempfile) then tempfile = ""
 
 if (VERBOSE) then print,'Opening ' + cdf_file + '... '
 id=cdf_open(cdf_file, /READONLY)
