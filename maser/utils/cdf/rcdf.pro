@@ -80,7 +80,7 @@ END
 ;   - Adapted from https://idlastro.gsfc.nasa.gov/ftp/pro/structure/create_struct.pro
 ;   - Renamed to create_structure to avoid collision with CREATE_STRUCT function in IDL standard library
 pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
-              CHATTER = chatter, NODELETE = nodelete
+              CHATTER = chatter, NODELETE = nodelete, tempfile = tempfile
 ;+
 ; NAME:
 ;       CREATE_STRUCTURE
@@ -130,6 +130,8 @@ pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
 ;       CHATTER -  If set, then CREATE_STRUCT() will display
 ;                  the dimensions of the structure to be created, and prompt
 ;                  the user whether to continue.  Default is no prompt.
+;
+;       tempfile -  path of the temporary file (without the ".pro" suffix) 
 ;
 ;       /NODELETE - If set, then the temporary file created
 ;                  CREATE_STRUCTURE will not be deleted upon exiting.   See below
@@ -197,13 +199,14 @@ pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
 ;       Remove FDECOMP, some cleaner coding  W.L. July 2009
 ;       Do not limit string length to 1000 chars   P. Broos,  Feb 2011
 ;       Assume since IDL V6.4 W. Landsman Aug 2013
+;       Add optional keyword tempfile X. Bonnin July 2025 
 ;-
 ;-------------------------------------------------------------------------------
 
  compile_opt idl2
  if N_params() LT 4 then begin
    print,'Syntax - CREATE_STRUCTURE, STRUCT, strname, tagnames, tag_descript,'
-   print,'                  [ DIMEN = , /CHATTER, /NODELETE ]'
+   print,'                  [ DIMEN = , tempfile = , /CHATTER, /NODELETE ]'
    return
  endif
 
@@ -346,8 +349,10 @@ pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
 
 ; --- Determine if a file already exists with same name as temporary file
 
- tempfile = 'temp_' + strlowcase( strname )
- while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
+if n_elements( tempfile) eq 0 then begin 
+    tempfile = 'temp_' + strlowcase( strname )
+    while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
+endif
 
 ; ---- open temp file and create procedure
 ; ---- If problems writing into the current directory, try the HOME directory
@@ -388,7 +393,7 @@ pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
   end         ;pro create_struct
 ;=========================================
 ;=========================================
-FUNCTION get_gattrs, id
+FUNCTION get_gattrs, id, tempfile = tempfile
 
 ; +
 ; NAME:
@@ -404,7 +409,8 @@ FUNCTION get_gattrs, id
 ;   id - Opened CDF file id (as returned by cdf_open() function)
 ;
 ; OPTIONAL INPUTS:
-;   None.
+;   tempfile - Path of the temporary file used to create the dynamical IDL structure. 
+;              The file extension ".pro" must be not passed.
 ;
 ; KEYWORD PARAMETERS:
 ;   None.
@@ -428,6 +434,7 @@ FUNCTION get_gattrs, id
 ; -
 
 gattrs = 0b
+if n_elements(temp_file) eq 0 then tempfile = ""
 
 ; Get attributes from open CDF
 cdf_control, id, get_numattrs=numattrs, /ZVAR
@@ -458,7 +465,8 @@ if (numattrs[0]) ne 0 then begin
     strname = '' ; Use anonymous structure
     tag_descript = strjoin(gattr_type[0:iatt-1], ',')
     create_structure, gattrs, strname, $
-        gattr_name[0:iatt-1], tag_descript
+        gattr_name[0:iatt-1], tag_descript, $
+        tempfile = tempfile
 
     ; Second loops to fill structure with global attribute entries
     iatt = 0l
@@ -489,6 +497,7 @@ END
 ;=========================================
 ;=========================================
 FUNCTION rcdf, cdf_file, gattrs=gattrs, $
+            tempfile = tempfile, $
             ONLY_GATTRS=ONLY_GATTRS, VERBOSE=VERBOSE
 
 ; +
@@ -505,7 +514,8 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;   cdf_file - Path of the CDF format file to read.
 ;
 ; OPTIONAL INPUTS:
-;   None.
+;   tempfile - Path of the temporary file used to create the dynamical IDL structure. 
+;              The file extension ".pro" must be not passed.
 ;
 ; KEYWORD PARAMETERS:
 ;   /ONLY_GATTRS - Only load Global attributes
@@ -520,6 +530,7 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;
 ; CALLS:
 ;   rcdf_dtype
+;   get_gattrs
 ;
 ; COMMENTS/RESTRICTIONS:
 ;   - CDF Header/variable info (e.g., CDF NAME,
@@ -547,6 +558,8 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;                             has no entry.
 ;   X.Bonnin, 25-JAN-2022:  - Call get_gattrs() and create_structure() functions
 ;                             for extracting global attributes from input CDF
+;   X.Bonnin, 11-JUL-2025   - Add optionl input tempfile
+;   
 ; -
 
 dquote = string(34b)
@@ -557,11 +570,12 @@ digit = strtrim(indgen(10),2)
 data = 0b & gattrs = 0b
 if (n_params() lt 1) then begin
     message,/INFO,'Usage:'
-    print,'data = rcdf(cdf_file, gattrs=gattrs, /ONLY_GATTRS, /VERBOSE)'
+    print,'data = rcdf(cdf_file, gattrs=gattrs, tempfile=tempfile, /ONLY_GATTRS, /VERBOSE)'
     return,0b
 endif
 ONLY_GATTRS = keyword_set(ONLY_GATTRS)
 VERBOSE = keyword_set(VERBOSE)
+if n_elements( tempfile) eq 0 then tempfile = ""
 
 if (VERBOSE) then print,'Opening ' + cdf_file + '... '
 id=cdf_open(cdf_file, /READONLY)
@@ -571,7 +585,8 @@ nvars=inq.nvars
 nzvars=inq.nzvars
 nvattrs=inq.natts
 
-gattrs = get_gattrs(id)
+; Retrieve global attributes from input CDF file
+gattrs = get_gattrs(id, tempfile = tempfile)
 
 if ONLY_GATTRS then return, 0b
 
