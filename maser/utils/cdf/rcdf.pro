@@ -434,7 +434,7 @@ FUNCTION get_gattrs, id, tempfile = tempfile
 ; -
 
 gattrs = 0b
-if ~keyword_set(temp_file) then tempfile = ""
+if ~keyword_set(tempfile) then tempfile = ""
  
 ; Get attributes from open CDF
 cdf_control, id, get_numattrs=numattrs, /ZVAR
