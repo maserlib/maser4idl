@@ -357,7 +357,8 @@ endif else tempfile = tempfile.replace('.pro', '')
 ; ---- open temp file and create procedure
 ; ---- If problems writing into the current directory, try the HOME directory
 
- cd,current= prodir
+if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = filepath(tempfile)
+
  cdhome = 0
  openw, unit, tempfile +'.pro', /get_lun, ERROR = err
  if (err LT 0)  then begin
