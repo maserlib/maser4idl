@@ -357,9 +357,8 @@ endif else tempfile = tempfile.replace('.pro', '')
 ; ---- open temp file and create procedure
 ; ---- If problems writing into the current directory, try the HOME directory
 
-if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = filepath(tempfile)
+if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = file_dirname(tempfile)
 
- cdhome = 0
  openw, unit, tempfile +'.pro', /get_lun, ERROR = err
  if (err LT 0)  then begin
       prodir = getenv('HOME')
@@ -367,7 +366,6 @@ if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = fil
       while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
       openw, unit, tempfile +'.pro', /get_lun, ERROR = err
       if err LT 0 then message,'Unable to create a temporary .pro file'
-      cdhome = 1
   endif
  name = file_basename(tempfile)
  printf, unit, 'pro ' +  name + ', struct'
@@ -380,10 +378,10 @@ if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = fil
 
 ; If using the HOME directory, it needs to be included in the IDL !PATH
 
- if cdhome then cd,getenv('HOME'),curr=curr
-  resolve_routine, name
-  Call_procedure, name, struct
- if cdhome then cd,curr
+cd,prodir,curr=curr
+resolve_routine, name
+Call_procedure, name, struct
+cd,curr
 
  if keyword_set( NODELETE ) then begin
     message,'Created temporary file ' + tempfile + '.pro',/INF
