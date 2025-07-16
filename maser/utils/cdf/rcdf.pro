@@ -358,12 +358,12 @@ endif else tempfile = tempfile.replace('.pro', '')
 ; ---- If problems writing into the current directory, try the HOME directory
 
 if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = file_dirname(tempfile)
+while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
 
  openw, unit, tempfile +'.pro', /get_lun, ERROR = err
  if (err LT 0)  then begin
       prodir = getenv('HOME')
-      tempfile = prodir + path_sep() + tempfile
-      while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
+      tempfile = prodir + path_sep() + file_basename(tempfile)
       openw, unit, tempfile +'.pro', /get_lun, ERROR = err
       if err LT 0 then message,'Unable to create a temporary .pro file'
   endif
