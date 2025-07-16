@@ -76,323 +76,7 @@ PRO rcdf_dtype, input_type, output_type, $
 END
 ;=========================================
 ;=========================================
-; NOTES:
-;   - Adapted from https://idlastro.gsfc.nasa.gov/ftp/pro/structure/create_struct.pro
-;   - Renamed to create_structure to avoid collision with CREATE_STRUCT function in IDL standard library
-pro create_structure, struct, strname, tagnames, tag_descript, DIMEN = dimen, $
-              CHATTER = chatter, NODELETE = nodelete, tempfile = tempfile
-;+
-; NAME:
-;       CREATE_STRUCTURE
-; PURPOSE:
-;       Create an IDL structure from a list of tag names and dimensions
-; EXPLANATION:
-;       Dynamically create an IDL structure variable from list of tag names
-;       and data types of arbitrary dimensions.   Useful when the type of
-;       structure needed is not known until run time.
-;
-;       Unlike the intrinsic function CREATE_STRUCT(), this procedure does not
-;       require the user to know the number of tags before run time.   (Note
-;       there is no name conflict since the intrinsic CREATE_STRUCT() is a
-;       function, and this file contains a procedure.)
-; CALLING SEQUENCE:
-;       CREATE_STRUCTURE, STRUCT, strname, tagnames, tag_descript,
-;                             [ DIMEN = , /CHATTER, /NODELETE ]
-;
-; INPUTS:
-;       STRNAME -   name to be associated with structure (string)
-;               Must be unique for each structure created.   Set
-;               STRNAME = '' to create an anonymous structure
-;
-;       TAGNAMES -  tag names for structure elements (string or string array)
-;                Any strings that are not valid IDL tag names (e.g. 'a\2')
-;                will be converted by IDL_VALIDNAME to a valid tagname by
-;                replacing with underscores as necessary (e.g. 'a_2')
-;
-;       TAG_DESCRIPT -  String descriptor for the structure, containing the
-;               tag type and dimensions.  For example, 'A(2),F(3),I', would
-;               be the descriptor for a structure with 3 tags, strarr(2),
-;               fltarr(3) and Integer scalar, respectively.
-;               Allowed types are 'A' for strings, 'B' or 'L' for unsigned byte
-;               integers, 'I' for integers, 'J' for longword integers,
-;               'K' for 64bit integers, 'F' or 'E' for floating point,
-;               'D' for double precision  'C' for complex, and 'M' for double
-;               complex.   Uninterpretable characters in a format field are
-;               ignored.
-;
-;               For vectors, the tag description can also be specified by
-;               a repeat count.  For example, '16E,2J' would specify a
-;               structure with two tags, fltarr(16), and lonarr(2)
-;
-; OPTIONAL KEYWORD INPUTS:
-;       DIMEN -    number of dimensions of structure array (default is 1)
-;
-;       CHATTER -  If set, then CREATE_STRUCT() will display
-;                  the dimensions of the structure to be created, and prompt
-;                  the user whether to continue.  Default is no prompt.
-;
-;       tempfile -  path of the temporary file (without the ".pro" suffix) 
-;
-;       /NODELETE - If set, then the temporary file created
-;                  CREATE_STRUCTURE will not be deleted upon exiting.   See below
-;
-; OUTPUTS:
-;       STRUCT -   IDL structure, created according to specifications
-;
-; EXAMPLES:
-;
-;       IDL> create_structure, new, 'name',['tag1','tag2','tag3'], 'D(2),F,A(1)'
-;
-;       will create a structure variable new, with structure name NAME
-;
-;       To see the structure of new:
-;
-;       IDL> help,new,/struc
-;       ** Structure NAME, 3 tags, 20 length:
-;          TAG1            DOUBLE         Array[2]
-;          TAG2            FLOAT          0.0
-;          TAG3            STRING         Array[1]
-;
-; PROCEDURE:
-;       Generates a temporary procedure file using input information with
-;       the desired structure data types and dimensions hard-coded.
-;       This file is then executed with CALL_PROCEDURE.
-;
-; NOTES:
-;       If CREATE_STRUCTURE cannot write a temporary .pro file in the current
-;       directory, then it will write the temporary file in the getenv('HOME')
-;       directory.
-;
-;       Note that 'L' now specifies a LOGICAL (byte) data type and not a
-;       a LONG data type for consistency with FITS binary tables
-;
-; RESTRICTIONS:
-;       The name of the structure must be unique, for each structure created.
-;       Otherwise, the new variable will have the same structure as the
-;       previous definition (because the temporary procedure will not be
-;       recompiled).  ** No error message will be generated  ***
-;
-; SUBROUTINES CALLED:
-;       REPCHR()
-;
-; MODIFICATION HISTORY:
-;       Version 1.0 RAS January 1992
-;       Modified 26 Feb 1992 for Rosat IDL Library (GAR)
-;       Modified Jun 1992 to accept arrays for tag elements -- KLV, Hughes STX
-;       Accept anonymous structures W. Landsman  HSTX    Sep. 92
-;       Accept 'E' and 'J' format specifications   W. Landsman Jan 93
-;       'L' format now stands for logical and not long array
-;       Accept repeat format for vectors        W. Landsman Feb 93
-;       Accept complex and double complex (for V4.0)   W. Landsman Jul 95
-;       Work for long structure definitions  W. Landsman Aug 97
-;       Write temporary file in HOME directory if necessary  W. Landsman Jul 98
-;       Use OPENR,/DELETE for OS-independent file removal W. Landsman Jan 99
-;       Use STRSPLIT() instead of GETTOK() W. Landsman  July 2002
-;       Assume since V5.3 W. Landsman  Feb 2004
-;       Added RESOLVE_ROUTINE to ensure recompilation W. Landsman Sep. 2004
-;       Delete temporary with FILE_DELETE   W. Landsman Sep 2006
-;       Assume since V5.5, delete VMS reference  W.Landsman Sep 2006
-;       Added 'K' format for 64 bit integers, IDL_VALIDNAME check on tags
-;                       W. Landsman  Feb 2007
-;       Use vector form of IDL_VALIDNAME() if V6.4 or later W.L. Dec 2007
-;       Suppress compilation mesage of temporary file A. Conley/W.L. May 2009
-;       Remove FDECOMP, some cleaner coding  W.L. July 2009
-;       Do not limit string length to 1000 chars   P. Broos,  Feb 2011
-;       Assume since IDL V6.4 W. Landsman Aug 2013
-;       Add optional keyword tempfile X. Bonnin July 2025 
-;-
-;-------------------------------------------------------------------------------
-
- compile_opt idl2
- if N_params() LT 4 then begin
-   print,'Syntax - CREATE_STRUCTURE, STRUCT, strname, tagnames, tag_descript,'
-   print,'                  [ DIMEN = , tempfile = , /CHATTER, /NODELETE ]'
-   return
- endif
-
- if ~keyword_set( chatter) then chatter = 0        ;default is 0
- if (N_elements(dimen) eq 0) then dimen = 1            ;default is 1
-
- if (dimen lt 1) then begin
-  print,' Number of dimensions must be >= 1. Returning.'
-  return
- endif
-
-; For anonymous structure, strname = ''
-  anonymous = 0b
-  if (strlen( strtrim(strname,2)) EQ 0 ) then anonymous = 1b
-
- good_fmts = [ 'A', 'B', 'I', 'L', 'F', 'E', 'D', 'J','C','M', 'K' ]
- fmts = ["' '",'0B','0','0B','0.0','0.0','0.0D0','0L','complex(0)', $
-           'dcomplex(0)', '0LL']
- arrs = [ 'strarr', 'bytarr', 'intarr', 'bytarr', 'fltarr', 'fltarr', $
-          'dblarr', 'lonarr','complexarr','dcomplexarr','lon64arr']
- ngoodf = N_elements( good_fmts )
-
-; If tagname is a scalar string separated by commas, convert to a string array
-
- if size(tagnames,/N_dimensions) EQ 0 then begin
-            tagname = strsplit(tagnames,',',/EXTRACT)
- endif else tagname = tagnames
-
- Ntags = N_elements(tagname)
-
-; Make sure supplied tag names are valid.
-
- tagname = idl_validname( tagname, /convert_all )
-
-;  If user supplied a scalar string descriptor then we want to break it up
-;  into individual items.    This is somewhat complicated because the string
-;  delimiter is not always a comma, e.g. if 'F,F(2,2),I(2)', so we need
-;  to check positions of parenthesis also.
-
- sz = size(tag_descript)
- if sz[0] EQ 0 then begin
-      tagvar = strarr( Ntags)
-      temptag = tag_descript
-      for i = 0, Ntags - 1 do begin
-         comma = strpos( temptag, ',' )
-         lparen = strpos( temptag, '(' )
-         rparen = strpos( temptag, ')' )
-            if ( comma GT lparen ) and (comma LT Rparen) then pos = Rparen+1 $
-                                                         else pos = comma
-             if pos EQ -1 then begin
-                 if i NE Ntags-1 then message, $
-         'WARNING - could only parse ' + strtrim(i+1,2) + ' string descriptors'
-                 tagvar[i] = temptag
-                 goto, DONE
-             endif else begin
-                    tagvar[i] = strmid( temptag, 0, pos )
-                    temptag = strmid( temptag, pos+1)
-              endelse
-             endfor
-             DONE:
-
- endif else tagvar = tag_descript
-
-; create string array for IDL statements, to be written into
-; 'temp_'+strname+'.pro'
-
- pro_string = strarr (ntags + 2)
-
- if (dimen EQ 1) then begin
-
-   pro_string[0] = "struct =  { " + strname + " $"
-   pro_string[ntags+1] = " } "
-
- endif else begin
-
-   dimen = long(dimen)                ;Changed to LONG from FIX Mar 95
-   pro_string[0] = "struct "   + " = replicate ( { " + strname + " $"
-   pro_string[ntags+1] = " } , " + string(dimen) + ")"
-
- endelse
-
- tagvar = strupcase(tagvar)
-
- for i = 0, ntags-1 do begin
-
-   goodpos = -1
-   for j = 0,ngoodf-1 do begin
-         fmt_pos = strpos( tagvar[i], good_fmts[j] )
-         if ( fmt_pos GE 0 ) then begin
-              goodpos = j
-              break
-         endif
-   endfor
-
-  if goodpos EQ -1 then begin
-      print,' Format not recognized: ' + tagvar[i]
-      print,' Allowed formats are :',good_fmts
-      stop,' Redefine tag format (' + string(i) + ' ) or quit now'
-  endif
-
-
-    if fmt_pos GT 0 then begin
-
-           repeat_count = strmid( tagvar[i], 0, fmt_pos )
-           if strnumber( repeat_count, value ) then begin
-                fmt = arrs[ goodpos ] + '(' + strtrim(fix(value), 2) + ')'
-           endif else begin
-                print,' Format not recognized: ' + tagvar[i]
-                stop,' Redefine tag format (' + string(i) + ' ) or quit now'
-           endelse
-
-    endif else  begin
-
-; Break up the tag descriptor into a format and a dimension
-    tagfmts = strmid( tagvar[i], 0, 1)
-    tagdim = strtrim( strmid( tagvar[i], 1, 80),2)
-    if strmid(tagdim,0,1) NE '(' then tagdim = ''
-    fmt = (tagdim EQ '') ? fmts[goodpos] : arrs[goodpos] + tagdim
-    endelse
-
-  if anonymous and ( i EQ 0 ) then comma = '' else comma = " , "
-
-      pro_string[i+1] = comma + tagname[i] + ": " + fmt + " $"
-
- endfor
-
-; Check that this structure definition is OK (if chatter set to 1)
-
- if keyword_set ( Chatter )  then begin
-   ans = ''
-   print,' Structure ',strname,' will be defined according to the following:'
-   temp = repchr( pro_string, '$', '')
-   print, temp
-   read,' OK to continue? (Y or N)  ',ans
-   if strmid(strupcase(ans),0,1) eq 'N' then begin
-      print,' Returning at user request.'
-     return
-   endif
- endif
-
-; --- Determine if a file already exists with same name as temporary file
-
-if ~keyword_set(tempfile) then begin 
-    tempfile = 'temp_' + strlowcase( strname )
-    while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
-endif else tempfile = tempfile.replace('.pro', '')
-
-; ---- open temp file and create procedure
-; ---- If problems writing into the current directory, try the HOME directory
-
-if file_basename(tempfile) eq tempfile then cd,current= prodir else prodir = file_dirname(tempfile)
-while file_test( tempfile + '.pro' ) do tempfile = tempfile + 'x'
-
- openw, unit, tempfile +'.pro', /get_lun, ERROR = err
- if (err LT 0)  then begin
-      prodir = getenv('HOME')
-      tempfile = prodir + path_sep() + file_basename(tempfile)
-      openw, unit, tempfile +'.pro', /get_lun, ERROR = err
-      if err LT 0 then message,'Unable to create a temporary .pro file'
-  endif
- name = file_basename(tempfile)
- printf, unit, 'pro ' +  name + ', struct'
- printf,unit,'compile_opt hidden'
- for j = 0,N_elements(pro_string)-1 do $
-        printf, unit, strtrim( pro_string[j] )
- printf, unit, 'return'
- printf, unit, 'end'
- free_lun, unit
-
-; If using the HOME directory, it needs to be included in the IDL !PATH
-
-cd,prodir,curr=curr
-resolve_routine, name
-Call_procedure, name, struct
-cd,curr
-
- if keyword_set( NODELETE ) then begin
-    message,'Created temporary file ' + tempfile + '.pro',/INF
-    return
- endif else file_delete, tempfile + '.pro'
-
-  return
-  end         ;pro create_struct
-;=========================================
-;=========================================
-FUNCTION get_gattrs, id, tempfile = tempfile
+FUNCTION get_gattrs, id
 
 ; +
 ; NAME:
@@ -408,8 +92,7 @@ FUNCTION get_gattrs, id, tempfile = tempfile
 ;   id - Opened CDF file id (as returned by cdf_open() function)
 ;
 ; OPTIONAL INPUTS:
-;   tempfile - Path of the temporary file used to create the dynamical IDL structure. 
-;              The file extension ".pro" must be not passed.
+;   None.
 ;
 ; KEYWORD PARAMETERS:
 ;   None.
@@ -433,14 +116,12 @@ FUNCTION get_gattrs, id, tempfile = tempfile
 ; -
 
 gattrs = 0b
-if ~keyword_set(tempfile) then tempfile = ""
  
 ; Get attributes from open CDF
 cdf_control, id, get_numattrs=numattrs, /ZVAR
 ; If attributes found, then try to extract global ones
 if (numattrs[0]) ne 0 then begin
-    gattr_name = strarr(numattrs[0])
-    gattr_type = strarr(numattrs[0])
+    gattrs = {}
     iatt = 0l
     nattrs = total(numattrs)
     ; First, get names and types of attributes
@@ -449,30 +130,6 @@ if (numattrs[0]) ne 0 then begin
         ; Only keep global attributes
         if (scope eq 'GLOBAL_SCOPE') then begin
             nentry = maxentry + 1
-            gattr_name[iatt] = name
-            if nentry le 0 then begin
-                message,/INFO,'Warning: ' + name + ' attribute has no entry!'
-                gattr_type[iatt] = 'A(1)'
-            endif else begin
-                gattr_type[iatt] = 'A('+strtrim(maxentry+1,2)+')'
-            endelse
-            iatt++
-        endif
-    endfor
-
-    ; Initialize ouput structure
-    strname = '' ; Use anonymous structure
-    tag_descript = strjoin(gattr_type[0:iatt-1], ',')
-    create_structure, gattrs, strname, $
-        gattr_name[0:iatt-1], tag_descript, $
-        tempfile = tempfile
-
-    ; Second loops to fill structure with global attribute entries
-    iatt = 0l
-    for i=0,nattrs-1 do begin
-        CDF_ATTINQ, id, i, name, scope, maxentry, maxzentry
-        ; Only keep global attributes
-        if (scope eq 'GLOBAL_SCOPE') then begin
             if maxentry lt 0 then begin
                 entry_i = strarr(1)
                 entry_i[0] = " "
@@ -484,7 +141,7 @@ if (numattrs[0]) ne 0 then begin
                     entry_i[j] = strtrim(att_j,2)
                 endfor
             endelse
-            gattrs.(iatt) = entry_i
+            gattrs = CREATE_STRUCT(gattrs, name, entry_i)
             iatt++
         endif
     endfor
@@ -496,7 +153,6 @@ END
 ;=========================================
 ;=========================================
 FUNCTION rcdf, cdf_file, gattrs=gattrs, $
-            tempfile = tempfile, $
             ONLY_GATTRS=ONLY_GATTRS, VERBOSE=VERBOSE
 
 ; +
@@ -513,8 +169,7 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;   cdf_file - Path of the CDF format file to read.
 ;
 ; OPTIONAL INPUTS:
-;   tempfile - Path of the temporary file used to create the dynamical IDL structure. 
-;              The file extension ".pro" must be not passed.
+;   None.
 ;
 ; KEYWORD PARAMETERS:
 ;   /ONLY_GATTRS - Only load Global attributes
@@ -557,7 +212,6 @@ FUNCTION rcdf, cdf_file, gattrs=gattrs, $
 ;                             has no entry.
 ;   X.Bonnin, 25-JAN-2022:  - Call get_gattrs() and create_structure() functions
 ;                             for extracting global attributes from input CDF
-;   X.Bonnin, 11-JUL-2025   - Add optionl input tempfile
 ;   
 ; -
 
@@ -569,12 +223,11 @@ digit = strtrim(indgen(10),2)
 data = 0b & gattrs = 0b
 if (n_params() lt 1) then begin
     message,/INFO,'Usage:'
-    print,'data = rcdf(cdf_file, gattrs=gattrs, tempfile=tempfile, /ONLY_GATTRS, /VERBOSE)'
+    print,'data = rcdf(cdf_file, gattrs=gattrs, /ONLY_GATTRS, /VERBOSE)'
     return,0b
 endif
 ONLY_GATTRS = keyword_set(ONLY_GATTRS)
 VERBOSE = keyword_set(VERBOSE)
-if ~keyword_set( tempfile) then tempfile = ""
 
 if (VERBOSE) then print,'Opening ' + cdf_file + '... '
 id=cdf_open(cdf_file, /READONLY)
@@ -585,7 +238,7 @@ nzvars=inq.nzvars
 nvattrs=inq.natts
 
 ; Retrieve global attributes from input CDF file
-gattrs = get_gattrs(id, tempfile = tempfile)
+gattrs = get_gattrs(id)
 
 if ONLY_GATTRS then return, 0b
 
