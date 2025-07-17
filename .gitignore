@@ -4,5 +4,6 @@ doc/build
 .idea/*
 ~*
 .DS_Store
+tmp
 
 tmp/

@@ -1,6 +1,14 @@
 MASER4IDL CHANGELOG
 ===================
 
+0.3.2
+-----
+* Remove create_struct from rcdf.pro
+
+0.3.1
+-----
+* Minor changes
+
 0.3.0
 ------
 * Add readers for RPW TNR & HFR
