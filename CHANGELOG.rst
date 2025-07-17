@@ -3,7 +3,7 @@ MASER4IDL CHANGELOG
 
 0.3.1
 -----
-* Add tempfile optional input in rcdf.pro
+* Remove create_struct from rcdf.pro
 
 0.3.0
 ------
